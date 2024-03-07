@@ -57,6 +57,10 @@ import NativeItem from '../components/NativeItem';
 import NativeText from '../components/NativeText';
 
 
+import { getDefaultStore } from 'jotai';
+const defaultStore = getDefaultStore();
+import { newsAtom } from '../atoms/news';
+
 const yOffset = new Animated.Value(0);
 
 const headerOpacity = yOffset.interpolate({
@@ -195,6 +199,10 @@ function NewsScreen ({ navigation }: {
 
       setNews(editedNews);
       setFinalNews(editedNews);
+
+      let unread = editedNews.filter((information) => !information.read);
+      defaultStore.set(newsAtom, unread.length);
+
       setIsLoading(false);
     })();
   }, [appContext.dataProvider]);
@@ -210,6 +218,10 @@ function NewsScreen ({ navigation }: {
 
       setNews(editedNews);
       setFinalNews(editedNews);
+
+      let unread = editedNews.filter((information) => !information.read);
+      defaultStore.set(newsAtom, unread.length);
+
       setIsHeadLoading(false);
     })();
   }, [appContext.dataProvider]);

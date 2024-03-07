@@ -9,6 +9,10 @@ import FlashMessage from 'react-native-flash-message';
 
 import SyncStorage from 'sync-storage';
 
+import { useAppContext } from './utils/AppContext';
+import { getDefaultStore } from 'jotai';
+import { newsAtom } from './atoms/news';
+
 import { getHeaderTitle } from '@react-navigation/elements';
 import { useMemo, useEffect } from 'react';
 import { Easing, Platform, StyleSheet, useColorScheme, View, TouchableOpacity, Animated } from 'react-native';
@@ -109,6 +113,8 @@ import {
   NewsFill as PapillonIconsNewsFill,
 } from './interface/icons/PapillonIcons';
 import InputPronoteQRPin from './views/NewAuthStack/Pronote/LoginPronoteQRToken';
+
+const defaultStore = getDefaultStore();
 
 // stack
 const Stack = createNativeStackNavigator();
@@ -898,7 +904,38 @@ function AppStack() {
   const theme = useTheme();
   const UIColors = GetUIColors();
 
+  // Used to force news reloading after loading (required when cache is expired)
+  const [newsKey, setNewsKey] = React.useState(0);
+
+  const reloadNotifications = async function () {
+    let notificationsCounter = SyncStorage.get('notificationsCounter');
+
+    if (notificationsCounter === undefined ) {
+      notificationsCounter = {};
+    } if (notificationsCounter.enabled === undefined) {
+      notificationsCounter.enabled = true;
+      SyncStorage.set('notificationsCounter', notificationsCounter);
+    } else if (!notificationsCounter.enabled) {
+      return;
+    }
+
+    const appContext = useAppContext();
+    if (appContext.dataProvider) {
+      let news = await (appContext.dataProvider.getNews(false));
+      let notifications = news.filter((information) => !information.read);
+      defaultStore.set(newsAtom, notifications.length);
+
+      // If it's the first load, force rerendering
+      if (newsKey === 0) {
+        setNewsKey(1);
+      }
+    }
+  };
+
+  reloadNotifications();
+
   let settings = SyncStorage.get('adjustments');
+  let notificationsCounter = SyncStorage.get('notificationsCounter');
 
   // if hideTabBarTitle doesn't exist, set it to false
   if (typeof settings === 'undefined') {
@@ -1075,7 +1112,7 @@ function AppStack() {
           tabBarLabel: 'Actualités',
           tabBarIcon: ({ color, size, focused }) => (
             !focused ? (
-              <PapillonIconsNews fill={color} stroke={color} width={size+2} height={size+2} />
+              <PapillonIconsNews fill={color} stroke={color} width={size+2} height={size+2} badge={notificationsCounter?.enabled ? defaultStore.get(newsAtom) : 0} key={newsKey} />
             ) : (
               <PapillonIconsNewsFill fill={color} stroke={color} width={size+2} height={size+2} />
             )
