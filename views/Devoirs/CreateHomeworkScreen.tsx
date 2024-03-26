@@ -1,4 +1,4 @@
-import React, { useEffect, useLayoutEffect, useState } from 'react';
+import React, { useEffect, useLayoutEffect, useState, useRef } from 'react';
 import { StyleSheet, View, TouchableOpacity, ScrollView, Image, Alert, StatusBar, TextInput, Platform, ActivityIndicator, KeyboardAvoidingView, InputAccessoryView } from 'react-native';
 
 import { Text } from 'react-native-paper';
@@ -47,7 +47,7 @@ const CreateHomeworkScreen = ({ route, navigation }) => {
   const [titleMissingAlert, setTitleMissingAlert] = useState(false);
 
   const [homeworkTitle, setHomeworkTitle] = useState('');
-  const inputRef = React.useRef(null)
+  const inputRef = useRef(null);
 
   function addSubject() {
     Alert.prompt(
@@ -143,7 +143,8 @@ const CreateHomeworkScreen = ({ route, navigation }) => {
         },
         description: homeworkTitle,
         background_color: getSavedCourseColor(nativeSubjects[selectedSubject]?.actionTitle, UIColors.primary),
-        done: false,
+        done:
+        false,
         date: hwDate.toISOString(),
         difficulty: 0,
         lengthInMinutes: 0,
@@ -362,6 +363,7 @@ const CreateHomeworkScreen = ({ route, navigation }) => {
               width: 32,
               height: 20,
               alignItems: 'center',
+             
               justifyContent: 'center',
             }}
             onPress={() => {
